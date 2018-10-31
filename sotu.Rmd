@@ -1,0 +1,48 @@
+---
+title: "State of the Union"
+author: "Oliver Cordeiro"
+date: "10/29/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytext)
+library(dplyr)
+library(knitr)
+library(stringr)
+```
+
+```{r, results="hide", warning=FALSE, message=FALSE, echo = FALSE}
+sou <- read_csv("data/sou.csv")
+presidents <- read_csv("data/presidents.csv")
+
+sou <- sou %>%
+  left_join(presidents)
+```
+
+```{r,  results="hide", warning=FALSE, message=FALSE, echo = FALSE}
+tidy_sou <- sou %>% 
+  unnest_tokens(word, text)
+
+
+sentiments <- sou %>%
+  unnest_tokens(word, text) %>%
+  inner_join(get_sentiments("afinn"), by = "word") %>% 
+  group_by(date, president) %>% 
+  summarize(rating = mean(score)) %>% 
+  arrange(desc(rating)) %>% 
+  left_join(sou, by = "president")
+
+sentiments %>% 
+ggplot(aes(x=president, y=rating, color = president)) +
+  geom_line() 
+
+```
+
+
+
+
+
